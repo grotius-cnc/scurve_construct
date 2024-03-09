@@ -1,0 +1,32 @@
+Performance using : clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+Scurve cycle:
+Function duration: 10329 nanoseconds
+Function duration: 2194 nanoseconds
+Function duration: 2515 nanoseconds
+Function duration: 6766 nanoseconds
+Function duration: 1884 nanoseconds
+Function duration: 1764 nanoseconds
+Function duration: 5985 nanoseconds
+Function duration: 2053 nanoseconds
+Function duration: 1823 nanoseconds
+Function duration: 8252 nanoseconds
+Function duration: 1510 nanoseconds
+Function duration: 1358 nanoseconds
+
+Ruckig cycle:
+Function duration: 21779 nanoseconds
+Function duration: 9161 nanoseconds
+Function duration: 10252 nanoseconds
+Function duration: 20288 nanoseconds
+Function duration: 8817 nanoseconds
+Function duration: 10302 nanoseconds
+Function duration: 52762 nanoseconds
+Function duration: 42609 nanoseconds
+Function duration: 32094 nanoseconds
+Function duration: 24196 nanoseconds
+Function duration: 41582 nanoseconds
+Function duration: 32464 nanoseconds
+Function duration: 45580 nanoseconds
+
+
