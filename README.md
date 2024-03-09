@@ -37,7 +37,7 @@ struct scurve_data s;
 while(!s.finish){
 	s=set_init_values_c(jermax,maxacc,maxvel,intval,s);
 	s=jog_position_c(s,enable,tarpos); 		// Use position control.
-    // s=jog_velocity_c(s,enable,tarpos); 	// Use velocity control.
+	// s=jog_velocity_c(s,enable,tarpos); 	// Use velocity control.
 	s=scurve_play_c(s);
     
 	// Results:

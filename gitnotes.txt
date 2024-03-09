@@ -4,15 +4,15 @@ git init
 git config --global init.defaultBranch master
 git remote add origin https://github.com/grotius-cnc/scurve_construct.git
 git add .
-git branch -M master
-git push -u origin master
+git branch -M main
+git push -u origin main
 
 git add .
 git commit -m "commit"
 
-git push -f origin master	# this is force, will destroy history.
-git push -u origin master    
+git push -f origin main		# this is force, will destroy history.
+git push -u origin main    
 
-git pull 					# To update the local clone 
+git pull					# To update the local clone 
 
 >> .gitignore				# Add .gitingore file to the project to skip upload of dirs & files.
