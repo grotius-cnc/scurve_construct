@@ -1,0 +1,1 @@
+the scurve_struct.h is duplicated in /emc/motion/ dir.
