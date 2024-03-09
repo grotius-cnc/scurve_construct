@@ -32,7 +32,7 @@ double jermax=5;
 double maxacc=5;
 double maxvel=10;
 double intval=0.001;
-struct scurve_data data;
+struct scurve_data s;
  
 while(!s.finish){
 	s=set_init_values_c(jermax,maxacc,maxvel,intval,s);
