@@ -162,6 +162,14 @@ void scurve_construct::jog_position_master(scurve_data &s, int enable, double en
     s.pd.btn_fwd=jog_fwd;   // Button press, release forward.
     s.pd.btn_rev=jog_rev;   // Button press, release reverse.
 
+    // Maxvel to high.
+    if(s.vr>s.maxvel){
+        s.endvel=s.maxvel;
+        s.endacc=0;
+        scurve_construct().stop_curve_build(s);
+        return;
+    }
+
     if(!enable){
          s.pd.stopinit=0;
     }
@@ -467,8 +475,10 @@ double scurve_construct::diff(double a, double b){
     if(a<=0 && b<=0){
         return fabs(a)-fabs(b);
     }
-    // (a>=0 && b>=0){
-    return a-b;
+    if(a>b){
+        return a-b;
+    }
+    return b-a;
 }
 
 //! Run a scurve algoritme given the build values.
@@ -787,8 +797,7 @@ void scurve_construct::t1_t2_t3_build(double jermax,
                                       scurve_period &c3){
 
     double dv=delta_vel(jermax,accinf);
-
-    double velshif=endvel-curvel;
+    double velshif=fabs(curvel-endvel);
 
     double zeroac=0; // Zero acceleration.
 
@@ -826,7 +835,9 @@ void scurve_construct::t1_t2_t3_build(double jermax,
                  c1);
 
         double v=velshif-dv;
-
+        if(jermax<0){ // Solved a bug for reverse curve period t2.
+            v=-abs(v);
+        }
         t2_build(c1.velend,
                  c1.velend+v,
                  accinf,

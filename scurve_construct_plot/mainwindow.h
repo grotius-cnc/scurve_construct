@@ -39,6 +39,16 @@ private slots:
 
     void on_pushButton_jog_pos_fwd_released();
 
+    void on_pushButton_jog_pause_pressed();
+
+    void on_pushButton_set_maxvel_pressed();
+
+    void on_pushButton_set_endvel_pressed();
+
+    void on_pushButton_set_maxacc_pressed();
+
+    void on_pushButton_set_jermax_pressed();
+
 private:
     Ui::MainWindow *ui;
     // Our custom plot widget

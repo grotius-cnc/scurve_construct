@@ -5,8 +5,8 @@
 
 #include "../scurve_construct/scurve_construct.h"
 scurve_data s;
-double jermax=10;
-double maxacc=10;
+double jermax=5;
+double maxacc=5;
 double maxvel=10;
 double endvel=0;
 double endacc=0;
@@ -18,6 +18,7 @@ bool jog_position=0;
 int btn_fwd=0;
 int btn_rev=0;
 int mode_position=0;
+int stopinit=0;
 
 double curvel=0,curacc=0,curpos=0;
 int finished=0;
@@ -108,8 +109,6 @@ void MainWindow::updatePlot()
     // Add the time the x data buffer
     m_XData.append( timeValue );
 
-    endvel=ui->lineEdit_endvel->text().toDouble();
-
     s=set_init_values_c(jermax,maxacc,maxvel,intval,s);
     if(jog_position){
         s=jog_position_c(s,enable,endvel,endacc,tarpos,btn_fwd,btn_rev);
@@ -168,7 +167,7 @@ void MainWindow::updatePlot()
     qreal xPlotMax = *xMaxIt;
 
     m_CustomPlot->xAxis->setRange( xPlotMin , xPlotMax );
-    m_CustomPlot->yAxis->setRange( yPlotMin - maxvel -1 , maxvel+1 );
+    m_CustomPlot->yAxis->setRange( yPlotMin - maxvel -1 , maxvel +1 );
 
     // m_CustomPlot->yAxis->setRange( yPlotMin - maxvel -10 , maxvel+10 );
 
@@ -223,7 +222,7 @@ void MainWindow::on_pushButton_jog_pos_rev_pressed()
 
 void MainWindow::on_pushButton_jog_pos_rev_released()
 {
-    enable=0; // Activate velocity pause to endvel.
+    // enable=0; // Activate velocity pause to endvel.
 }
 
 void MainWindow::on_pushButton_jog_pos_fwd_pressed()
@@ -238,5 +237,32 @@ void MainWindow::on_pushButton_jog_pos_fwd_pressed()
 
 void MainWindow::on_pushButton_jog_pos_fwd_released()
 {
-    enable=0; // Activate velocity pause to endvel.
+    // enable=0; // Activate velocity pause to endvel.
+}
+
+void MainWindow::on_pushButton_jog_pause_pressed()
+{
+    enable=0;
+    jog_velocity=1;
+    jog_position=0;
+}
+
+void MainWindow::on_pushButton_set_maxvel_pressed()
+{
+    maxvel=ui->lineEdit_maxvel->text().toDouble();
+}
+
+void MainWindow::on_pushButton_set_endvel_pressed()
+{
+    endvel=ui->lineEdit_endvel->text().toDouble();
+}
+
+void MainWindow::on_pushButton_set_maxacc_pressed()
+{
+    maxacc=ui->lineEdit_maxacc->text().toDouble();
+}
+
+void MainWindow::on_pushButton_set_jermax_pressed()
+{
+    jermax=ui->lineEdit_jermax->text().toDouble();
 }

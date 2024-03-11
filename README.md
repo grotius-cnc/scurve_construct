@@ -1,5 +1,11 @@
 ### Scurve_motion Library by Grotius
 
+This repository is based on attached science papers. It's a interest of work by Skynet Cyberdyne, alias Grotius.
+
+Let's pray the Israeli genocide in Gaza will not be the second holocaust.
+
+using a `high jerk` value results in a greater linear acceleration stage between the concave & convex curve.
+![S-curve Motion](high_jerk.jpg)
 position control
 ![S-curve Motion](position_control.jpg)
 velocity control
