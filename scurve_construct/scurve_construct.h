@@ -22,26 +22,40 @@ class scurve_construct
 public:
     scurve_construct();
 
+    //! Set values for initialisation.
     scurve_data  set_init_values(double jerk_max,
                          double acceleration_max,
                          double maximum_velocity,
                          double cycletime,
                          scurve_data s);
 
-    void zero_period(scurve_period &p);
+    //! Tarpos input positive or negative.
+    //! Enable is jog forward or reverse, else stop jog.
+    void jog_velocity(scurve_data &s, int enable, double endvel, double endacc, double tarpos);
 
-    void jog_velocity(scurve_data &s, int status, double tarpos);
+    //! Tarpos input positive or negative.
+    //! Enable is jog forward or reverse, else stop jog to velocity end, like a pause.
+    //! Jog forward or jog reverse input to verify direction. This prevents a direction change "saw effect" depending on the
+    //! current position and target position.
+    void jog_position_master(scurve_data &s, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev);
 
-    void jog_position_master(scurve_data &s, int status, double tarpos);
+    //! Update curve cycle.
+    void jog_update(scurve_data &s);
+
+    //! Results :
+    void jog_results(scurve_data s, double &velocity, double &acceleration, double &position, int &finished);
+
+private:
     void jog_position_fwd(scurve_data &s, int status, double tarpos);
     void jog_position_rev(scurve_data &s, int status, double tarpos);
 
     void forward_curve_build(scurve_data &s);
     void stop_curve_build(scurve_data &s);
 
+    void zero_period(scurve_period &p);
     void stop_lenght(scurve_data &s, double &lenght, double &time);
 
-    void curve_play(scurve_data &s);
+
 
     void t1_t2_t3_build(double jermax,
                         double accinf,

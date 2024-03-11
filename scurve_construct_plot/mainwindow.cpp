@@ -8,17 +8,28 @@ scurve_data s;
 double jermax=10;
 double maxacc=10;
 double maxvel=10;
+double endvel=0;
+double endacc=0;
 double intval=0.01;
 int enable=0;
 double tarpos=0;
+bool jog_velocity=0;
+bool jog_position=0;
+int btn_fwd=0;
+int btn_rev=0;
+int mode_position=0;
+
+double curvel=0,curacc=0,curpos=0;
+int finished=0;
 extern "C" struct scurve_data set_init_values_c(double jermax,
-                                  double accmax,
-                                  double maxvel,
-                                  double cyctim,
-                                  struct scurve_data data);
-extern "C" struct scurve_data scurve_play_c(struct scurve_data data);
-extern "C" struct scurve_data jog_velocity_c(struct scurve_data data, int enable, double tarpos);
-extern "C" struct scurve_data jog_position_c(struct scurve_data data, int enable, double tarpos);
+                                                double accmax,
+                                                double maxvel,
+                                                double cyctim,
+                                                struct scurve_data data);
+extern "C" struct scurve_data jog_update_c(struct scurve_data data);
+extern "C" struct scurve_data jog_velocity_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos);
+extern "C" struct scurve_data jog_position_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev);
+extern "C" void jog_results_c(struct scurve_data data, double *velocity, double *acceleration, double *position, int *finished);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -97,23 +108,35 @@ void MainWindow::updatePlot()
     // Add the time the x data buffer
     m_XData.append( timeValue );
 
+    endvel=ui->lineEdit_endvel->text().toDouble();
+
     s=set_init_values_c(jermax,maxacc,maxvel,intval,s);
-    s=jog_position_c(s,enable,tarpos);
-    s=scurve_play_c(s);
+    if(jog_position){
+        s=jog_position_c(s,enable,endvel,endacc,tarpos,btn_fwd,btn_rev);
+    }
+    if(jog_velocity){
+        double endvel_v=0;
+        s=jog_velocity_c(s,enable,endvel_v,endacc,tarpos);
+    }
+    s=jog_update_c(s);
+
+    jog_results_c(s,&curvel,&curacc,&curpos,&finished);
+
+    ui->checkBox_finished->setChecked(s.finish);
 
     // Write graph values.
-    qreal value=s.guivel;
+    qreal value=curvel;
     m_YData.append( value );
 
-    value=s.guiacc;
+    value=curacc;
     m_YData1.append( value );
 
-    value=s.guipos*0.1;
+    value=curpos*0.1;
     m_YData2.append( value );
 
-    ui->label_curvel->setText(QString::number(s.guivel,'f',15));
-    ui->label_curacc->setText(QString::number(s.guiacc,'f',15));
-    ui->label_curpos->setText(QString::number(s.guipos,'f',15));
+    ui->label_curvel->setText(QString::number(curvel,'f',15));
+    ui->label_curacc->setText(QString::number(curacc,'f',15));
+    ui->label_curpos->setText(QString::number(curpos,'f',15));
 
     // Keep the data buffers size under 100 value each,
     // so our moemoty won't explode with random numbers
@@ -145,7 +168,7 @@ void MainWindow::updatePlot()
     qreal xPlotMax = *xMaxIt;
 
     m_CustomPlot->xAxis->setRange( xPlotMin , xPlotMax );
-    m_CustomPlot->yAxis->setRange( yPlotMin - s.maxvel -1 , s.maxvel+1 );
+    m_CustomPlot->yAxis->setRange( yPlotMin - maxvel -1 , maxvel+1 );
 
     // m_CustomPlot->yAxis->setRange( yPlotMin - maxvel -10 , maxvel+10 );
 
@@ -165,13 +188,17 @@ void MainWindow::on_pushButton_pause_pressed()
 void MainWindow::on_pushButton_jog_reverse_pressed()
 {
     enable=1;
-    tarpos=-10000;
+    tarpos=-INFINITY;
+    jog_velocity=1;
+    jog_position=0;
 }
 
 void MainWindow::on_pushButton_jog_forward_pressed()
 {
     enable=1;
-    tarpos=10000;
+    tarpos=INFINITY;
+    jog_velocity=1;
+    jog_position=0;
 }
 
 void MainWindow::on_pushButton_jog_reverse_released()
@@ -184,25 +211,32 @@ void MainWindow::on_pushButton_jog_forward_released()
     enable=0;
 }
 
-
 void MainWindow::on_pushButton_jog_pos_rev_pressed()
 {
     enable=1;
     tarpos=ui->lineEdit_rev_tarpos->text().toDouble();
+    jog_velocity=0;
+    jog_position=1;
+    btn_fwd=0;
+    btn_rev=1;
 }
 
 void MainWindow::on_pushButton_jog_pos_rev_released()
 {
-    enable=0;
+    enable=0; // Activate velocity pause to endvel.
 }
 
 void MainWindow::on_pushButton_jog_pos_fwd_pressed()
 {
     enable=1;
     tarpos=ui->lineEdit_fwd_tarpos->text().toDouble();
+    jog_velocity=0;
+    jog_position=1;
+    btn_fwd=1;
+    btn_rev=0;
 }
 
 void MainWindow::on_pushButton_jog_pos_fwd_released()
 {
-    enable=0;
+    enable=0; // Activate velocity pause to endvel.
 }

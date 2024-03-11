@@ -43,6 +43,55 @@ color: rgb(255, 255, 255);
     </item>
     <item row="1" column="0">
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="pushButton_jog_forward">
+        <property name="text">
+         <string>jog velocity forward</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>curvel:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>rev_tarpos:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>fwd_tarpos:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="lineEdit_fwd_tarpos">
+        <property name="text">
+         <string>100</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="lineEdit_rev_tarpos">
+        <property name="text">
+         <string>-100</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton_jog_pos_rev">
+        <property name="text">
+         <string>jog position reverse</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="4">
        <widget class="QLabel" name="label_curvel">
         <property name="minimumSize">
@@ -53,34 +102,6 @@ color: rgb(255, 255, 255);
         </property>
         <property name="text">
          <string>0.000</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="pushButton_pause">
-        <property name="text">
-         <string>pause timer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLineEdit" name="lineEdit_fwd_tarpos">
-        <property name="text">
-         <string>10</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>curacc:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>curvel:</string>
         </property>
        </widget>
       </item>
@@ -97,15 +118,22 @@ color: rgb(255, 255, 255);
         </property>
        </spacer>
       </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton_jog_reverse">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>jog velocity reverse</string>
+         <string>curacc:</string>
         </property>
        </widget>
       </item>
       <item row="1" column="4">
        <widget class="QLabel" name="label_curacc">
+        <property name="text">
+         <string>0.000</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QLabel" name="label_curpos">
         <property name="text">
          <string>0.000</string>
         </property>
@@ -118,38 +146,17 @@ color: rgb(255, 255, 255);
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_5">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButton_jog_pos_fwd">
         <property name="text">
-         <string>fwd_tarpos:</string>
+         <string>jog position forward</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="4">
-       <widget class="QLabel" name="label_curpos">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="pushButton_jog_reverse">
         <property name="text">
-         <string>0.000</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>rev_tarpos:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLineEdit" name="lineEdit_rev_tarpos">
-        <property name="text">
-         <string>-10</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton_jog_forward">
-        <property name="text">
-         <string>jog velocity forward</string>
+         <string>jog velocity reverse</string>
         </property>
        </widget>
       </item>
@@ -160,17 +167,24 @@ color: rgb(255, 255, 255);
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton_jog_pos_rev">
+      <item row="2" column="0">
+       <widget class="QPushButton" name="pushButton_pause">
         <property name="text">
-         <string>jog position reverse</string>
+         <string>pause timer</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_jog_pos_fwd">
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="lineEdit_endvel">
         <property name="text">
-         <string>jog position forward</string>
+         <string>2</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>velocity end:</string>
         </property>
        </widget>
       </item>

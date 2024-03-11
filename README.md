@@ -5,6 +5,9 @@ position control
 velocity control
 ![S-curve Motion](velocity_control.jpg)
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/rtNosKwFN_0/0.jpg)](https://www.youtube.com/watch?v=rtNosKwFN_0)
+
+
 ### Overview
 
 The `scurve_construct` library is a C++ library designed for jogging and position control applications with scurvature motion profiles. 
@@ -19,9 +22,12 @@ to create a functional library that can be used in realtime applications.
 - Jerk limited.
 - Velocity control.
 - Position control.
-- Support for both forward and reverse jogging.
+- End velocity.
+- End acceleration.
+- Support for both forward and reverse jogging in velocity or position mode.
 - Linear acceleration stage between concave & convex curve depending on jerk value.
 - Gui project to preview curve outputs in a qt-realtime-plot.
+
 
 ### Language
 

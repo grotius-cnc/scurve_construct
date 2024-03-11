@@ -6,42 +6,42 @@ scurve_construct::scurve_construct()
 
 }
 
-double ttot_period(scurve_period p){                  // Time total.
+double ttot_period(scurve_period p){    // Time total.
     double ttot=p.timend-p.timbeg;
     return ttot;
 }
-double stot_period(scurve_period p){                  // Displacement total.
+double stot_period(scurve_period p){    // Displacement total.
     double stot=p.disend-p.disbeg;
     return stot;
 }
 double delvelocity(scurve_data d){
-    double jm=d.jermax;           // "jm"  Jerk max. Steepness value of a scurve.
-    double as=d.maxacc*2;         // "as"  Max acceleration at inflection point. as=2*A.
-    double dvt=2*as/jm;           // "dvt" Delta velocity time, derived from: jm=2*as/t1.
-    double dv=fabs((dvt*as)/2);    // "dv"  Delta velocity, dv=vo-ve, derived from: t1=2*(ve-vo)/as;
+    double jm=d.jermax;                 // "jm"  Jerk max. Steepness value of a scurve.
+    double as=d.maxacc*2;               // "as"  Max acceleration at inflection point. as=2*A.
+    double dvt=2*as/jm;                 // "dvt" Delta velocity time, derived from: jm=2*as/t1.
+    double dv=fabs((dvt*as)/2);         // "dv"  Delta velocity, dv=vo-ve, derived from: t1=2*(ve-vo)/as;
     return dv;
 }
-double ttot(scurve_data d){                  // Total time of a forward or stop curve.
+double ttot(scurve_data d){             // Total time of a forward or stop curve.
     return ttot_period(d.c0)+ttot_period(d.c1)+ttot_period(d.c2)+
             ttot_period(d.c3)+ttot_period(d.c4);
 }
-double stot(scurve_data d){                  // Total displacement of a forward or stop curve.
+double stot(scurve_data d){             // Total displacement of a forward or stop curve.
     return stot_period(d.c0)+stot_period(d.c1)+stot_period(d.c2)+
             stot_period(d.c3)+stot_period(d.c4);
 }
-double vel(scurve_data d){                   // Current velocity.
+double vel(scurve_data d){              // Current velocity.
     if(d.revers){
         return -fabs(d.vr);
     }
     return d.vr;
 }
-double acc(scurve_data d){                   // Current acceleration.
+double acc(scurve_data d){              // Current acceleration.
     if(d.revers){
         return -fabs(d.ar);
     }
     return d.ar;
 }
-double pos(scurve_data d){                   // Currernt position.
+double pos(scurve_data d){              // Currernt position.
     return d.incpos;
 }
 
@@ -52,17 +52,27 @@ extern "C" struct scurve_data set_init_values_c(double jermax,
                                                 struct scurve_data data){
     return scurve_construct().set_init_values(jermax,accmax,maxvel,cyctim,data);
 }
-extern "C" struct scurve_data scurve_play_c(struct scurve_data data){
-    scurve_construct().curve_play(data);
+extern "C" struct scurve_data jog_update_c(struct scurve_data data){
+    scurve_construct().jog_update(data);
     return data;
 }
-extern "C" struct scurve_data jog_velocity_c(struct scurve_data data, int enable, double tarpos){
-    scurve_construct().jog_velocity(data,enable,tarpos);
+extern "C" struct scurve_data jog_velocity_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos){
+    scurve_construct().jog_velocity(data,enable,endvel,endacc,tarpos);
     return data;
 }
-extern "C" struct scurve_data jog_position_c(struct scurve_data data, int enable, double tarpos){
-    scurve_construct().jog_position_master(data,enable,tarpos);
+extern "C" struct scurve_data jog_position_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev){
+    scurve_construct().jog_position_master(data,enable,endvel,endacc,tarpos,jog_fwd,jog_rev);
     return data;
+}
+
+extern "C" void jog_results_c(struct scurve_data data, double *velocity, double *acceleration, double *position, int *finished){
+    double v,a,p;
+    int f;
+    scurve_construct().jog_results(data,v,a,p,f);
+    *velocity=v;
+    *acceleration=a;
+    *position=p;
+    *finished=f;
 }
 
 scurve_data scurve_construct::set_init_values(double jerk_max,
@@ -92,17 +102,26 @@ void scurve_construct::zero_period(scurve_period &p){
     p.accinf=0;
 }
 
-void scurve_construct::jog_velocity(scurve_data &s, int enable, double tarpos){
+void scurve_construct::jog_velocity(scurve_data &s, int enable, double endvel, double endacc, double tarpos){
 
     s.tarpos=tarpos;
+    s.modpos=0;         // Keep zero, otherwise it will set tarpos at finish.
+    s.endvel=endvel;
+    s.endacc=endacc;
 
     // Jog stop first.
     if(s.guivel<0 && s.guipos<s.tarpos){
+        s.endvel=0;
+        s.endacc=0;
         scurve_construct().stop_curve_build(s);
+        // std::cout<<"stopcurve change direction."<<std::endl;
         return;
     }
     if(s.guivel>0 && s.guipos>s.tarpos){
+        s.endvel=0;
+        s.endacc=0;
         scurve_construct().stop_curve_build(s);
+        // std::cout<<"stopcurve change direction."<<std::endl;
         return;
     }
 
@@ -116,49 +135,74 @@ void scurve_construct::jog_velocity(scurve_data &s, int enable, double tarpos){
 
     if(enable){
         scurve_construct().forward_curve_build(s);
+        // std::cout<<"forward curve."<<std::endl;
     }
     if(!enable){
+        if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
+            s.endvel=0;
+        }
         scurve_construct().stop_curve_build(s);
+        // std::cout<<"stopcurve to ve:"<<s.endvel<<std::endl;
     }
 
     s.finish=0;
-    if(s.guivel==0){
+    if(s.vr==s.endvel && s.guiacc==s.endacc){ // s.vr is the abs positive of s.guivel.
         s.finish=1;
         // std::cout<<"jogging velocity mode finished."<<std::endl;
     }
 }
 
-void scurve_construct::jog_position_master(scurve_data &s, int enable, double tarpos){
+void scurve_construct::jog_position_master(scurve_data &s, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev){
 
     s.finish=0;
     s.tarpos=tarpos;
-    // std::cout<<"jogging position active."<<std::endl;
+    s.modpos=1;             // Enable position limit to tarpos.
+    s.endvel=endvel;
+    s.endacc=endacc;
+    s.pd.btn_fwd=jog_fwd;   // Button press, release forward.
+    s.pd.btn_rev=jog_rev;   // Button press, release reverse.
 
-    // Jog stop first before changing direction.
-    if(s.guivel>0 && s.guipos>s.tarpos){
+    if(!enable){
+         s.pd.stopinit=0;
+    }
+
+    if(s.pd.btn_fwd && s.guivel<0){ // Jog stop first before changing direction.
+        s.endvel=0;
+        s.endacc=0;
         scurve_construct().stop_curve_build(s);
+        // std::cout<<"direction change to ve=0."<<std::endl;
         return;
     }
-    if(s.guivel<0 && s.guipos<s.tarpos){
+    if(s.pd.btn_rev && s.guivel>0){ // Jog stop first before changing direction.
+        s.endvel=0;
+        s.endacc=0;
         scurve_construct().stop_curve_build(s);
+        // std::cout<<"direction change to ve=0."<<std::endl;
+        return;
+    }
+
+    if(s.pd.btn_fwd && s.guipos>=s.tarpos){
+        scurve_construct().stop_curve_build(s);
+        s.finish=1;
+        // std::cout<<"finished fwd."<<std::endl;
+        return;
+    }
+    if(s.pd.btn_rev && s.guipos<=s.tarpos){
+        scurve_construct().stop_curve_build(s);
+        s.finish=1;
+        // std::cout<<"finished rev."<<std::endl;
         return;
     }
 
     // Jog direction.
     if(s.guipos<s.tarpos ){
         jog_position_fwd(s,enable,tarpos);
-        // std::cout<<"jogging fwd."<<std::endl;
+        // std::cout<<"jogging fwd to ve:"<<s.endvel<<std::endl;
         return;
     }
     if(s.guipos>s.tarpos ){
         jog_position_rev(s,enable,tarpos);
-        // std::cout<<"jogging rev."<<std::endl;
-        return;
-    }
-    if(s.guipos==s.tarpos){
-        s.pd.stopinit=0;
-        s.finish=1;
-        // std::cout<<"jogging position mode finished."<<std::endl;
+        // std::cout<<"jogging rev to ve:"<<s.endvel<<std::endl;
         return;
     }
 }
@@ -178,13 +222,6 @@ void scurve_construct::jog_position_rev(scurve_data &s, int enable, double tarpo
     s.pd.overshoot=(s.guipos+s.pd.stopdist)-s.tarpos;
     // std::cout<<"overshoot:"<<s.pd.overshoot<<std::endl;
 
-    if(s.pd.stopinit && s.pd.stopdist==0){
-        s.guipos=tarpos;
-        s.guivel=0;
-        s.guiacc=0;
-        return;
-    }
-
     if(s.guivel<=0 && s.pd.overshoot<0){
         if(!s.pd.stopinit){
             int cycles=s.pd.stoptime/s.intval;
@@ -200,6 +237,9 @@ void scurve_construct::jog_position_rev(scurve_data &s, int enable, double tarpo
         scurve_construct().forward_curve_build(s);
     }
     if(!enable){
+        //if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
+            s.endvel=0;
+        //}
         scurve_construct().stop_curve_build(s);
     }
 }
@@ -217,13 +257,6 @@ void scurve_construct::jog_position_fwd(scurve_data &s, int enable, double tarpo
     s.pd.overshoot=(s.guipos+s.pd.stopdist)-tarpos;
     // std::cout<<"overshoot:"<<s.pd.overshoot<<std::endl;
 
-    if(s.pd.stopinit && s.pd.stopdist==0){
-        s.guipos=tarpos;
-        s.guivel=0;
-        s.guiacc=0;
-        return;
-    }
-
     if(s.guivel>=0 && s.pd.overshoot>0){
         if(!s.pd.stopinit){
             int cycles=s.pd.stoptime/s.intval;
@@ -239,6 +272,9 @@ void scurve_construct::jog_position_fwd(scurve_data &s, int enable, double tarpo
         scurve_construct().forward_curve_build(s);
     }
     if(!enable){
+        //if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
+            s.endvel=0;
+        //}
         scurve_construct().stop_curve_build(s);
     }
 }
@@ -246,8 +282,8 @@ void scurve_construct::jog_position_fwd(scurve_data &s, int enable, double tarpo
 void scurve_construct::stop_lenght(scurve_data &s, double &lenght, double &time){
     scurve_data data=s;
     stop_curve_build(data);
-    lenght=stot(data);
-    time=ttot(data);
+    lenght=stot_period(data.c0)+stot_period(data.c1)+stot_period(data.c2)+stot_period(data.c3);
+    time=ttot_period(data.c0)+ttot_period(data.c1)+ttot_period(data.c2)+ttot_period(data.c3);
 }
 
 //! Stop scurve algoritme.
@@ -259,8 +295,8 @@ void scurve_construct::stop_curve_build(scurve_data &s){
     double curvel=s.vr;
     double curacc=s.ar;
     double delvel=delvelocity(s);
-    double endacc=0;
-    double endvel=0;
+    double endacc=s.endacc;
+    double endvel=s.endvel;
 
     s.oldpos+=s.sr;
     s.sr=0;
@@ -322,6 +358,15 @@ void scurve_construct::stop_curve_build(scurve_data &s){
             // std::cout<<"use t1,t2,t3, accinf:"<<as<<std::endl;
         }
     }
+    t4_build(s.endvel,s.c4);
+    s.c4.timbeg=0;
+    s.c4.timend=INFINITY;
+    s.c4.velbeg=s.endvel;
+    s.c4.velend=s.endvel;
+    s.c4.disbeg=0;
+    s.c4.disend=INFINITY;
+    s.c4.accbeg=0;
+    s.c4.accend=0;
 }
 
 //! Forward scurve algoritme.
@@ -405,6 +450,8 @@ void scurve_construct::forward_curve_build(scurve_data &s){
     s.c4.velbeg=s.maxvel;
     s.c4.disbeg=0;
     s.c4.disend=INFINITY;
+    s.c4.accbeg=0;
+    s.c4.accend=0;
 }
 
 //! Calculates netto difference between to values.
@@ -428,23 +475,10 @@ double scurve_construct::diff(double a, double b){
 //! Calculate when the stop curve is valid.
 //! Try to end at given endpoint.
 //! Returns 1, when finished.
-void scurve_construct::curve_play(scurve_data &s){
+void scurve_construct::jog_update(scurve_data &s){
 
     s.curtim+=s.intval;
     s.oldpos=s.sr;
-
-    /*
-    std::cout<<"ttot c0:"<<ttot_period(s.c0)<<std::endl;
-    std::cout<<"ttot c1:"<<ttot_period(s.c1)<<std::endl;
-    std::cout<<"ttot c2:"<<ttot_period(s.c2)<<std::endl;
-    std::cout<<"ttot c3:"<<ttot_period(s.c3)<<std::endl;
-    std::cout<<"ttot c4:"<<ttot_period(s.c4)<<std::endl;
-
-    std::cout<<"stot c0:"<<stot_period(s.c0)<<std::endl;
-    std::cout<<"stot c1:"<<stot_period(s.c1)<<std::endl;
-    std::cout<<"stot c2:"<<stot_period(s.c2)<<std::endl;
-    std::cout<<"stot c3:"<<stot_period(s.c3)<<std::endl;
-    std::cout<<"stot c4:"<<stot_period(s.c4)<<std::endl;*/
 
     if(s.curtim<ttot_period(s.c0)){
         t3_play(s.curtim,
@@ -507,6 +541,17 @@ void scurve_construct::curve_play(scurve_data &s){
         s.guivel=s.vr;
         s.guiacc=s.ar;
     }
+
+    if(s.modpos && s.finish){
+        s.guipos=s.tarpos;
+    }
+}
+
+void scurve_construct::jog_results(scurve_data s, double &velocity, double &acceleration, double &position, int &finished){
+    velocity=s.guivel;
+    acceleration=s.guiacc;
+    position=s.guipos;
+    finished=s.finish;
 }
 
 //! Play convex period t3.

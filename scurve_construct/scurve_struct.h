@@ -16,6 +16,8 @@ struct position_data {
     double overshoot;
     double dist_remove_a_cycle;
     int stopinit;
+    int btn_fwd;
+    int btn_rev;
 };
 
 //! Struct used to store forward or stop scurve data.
@@ -28,6 +30,7 @@ struct scurve_data {
     // double curvel;                // Velocity current.
     // double curacc;                // Accelertaion current.
     double endacc;                // Acceleration end.
+    double endvel;                // Velocity end.
     double maxvel;                // Velocity max.
     double maxacc;                // Acceleration max.
     double guipos;                // Guipos has no reverse pos.
@@ -45,7 +48,7 @@ struct scurve_data {
     double vr, ar, sr;            // Results for "vr" velocity, "ar" acceleration, "sr" displacement.
 
     int revers;                   // Reverse motion active.
-
+    int modpos;                   // Mode position.
     struct position_data pd;
 };
 
