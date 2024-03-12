@@ -1,7 +1,7 @@
-#include "scurve_construct.h"
+#include "scurve_engine.h"
 #include "iostream"
 
-scurve_construct::scurve_construct()
+scurve_engine::scurve_engine()
 {
 
 }
@@ -50,32 +50,32 @@ extern "C" struct scurve_data set_init_values_c(double jermax,
                                                 double maxvel,
                                                 double cyctim,
                                                 struct scurve_data data){
-    return scurve_construct().set_init_values(jermax,accmax,maxvel,cyctim,data);
+    return scurve_engine().set_init_values(jermax,accmax,maxvel,cyctim,data);
 }
 extern "C" struct scurve_data jog_update_c(struct scurve_data data){
-    scurve_construct().jog_update(data);
+    scurve_engine().jog_update(data);
     return data;
 }
 extern "C" struct scurve_data jog_velocity_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos){
-    scurve_construct().jog_velocity(data,enable,endvel,endacc,tarpos);
+    scurve_engine().jog_velocity(data,enable,endvel,endacc,tarpos);
     return data;
 }
 extern "C" struct scurve_data jog_position_c(struct scurve_data data, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev){
-    scurve_construct().jog_position_master(data,enable,endvel,endacc,tarpos,jog_fwd,jog_rev);
+    scurve_engine().jog_position_master(data,enable,endvel,endacc,tarpos,jog_fwd,jog_rev);
     return data;
 }
 
 extern "C" void jog_results_c(struct scurve_data data, double *velocity, double *acceleration, double *position, int *finished){
     double v,a,p;
     int f;
-    scurve_construct().jog_results(data,v,a,p,f);
+    scurve_engine().jog_results(data,v,a,p,f);
     *velocity=v;
     *acceleration=a;
     *position=p;
     *finished=f;
 }
 
-scurve_data scurve_construct::set_init_values(double jerk_max,
+scurve_data scurve_engine::set_init_values(double jerk_max,
                                               double acceleration_max,
                                               double maximum_velocity,
                                               double cycletime,
@@ -88,7 +88,7 @@ scurve_data scurve_construct::set_init_values(double jerk_max,
     return data;
 }
 
-void scurve_construct::zero_period(scurve_period &p){
+void scurve_engine::zero_period(scurve_period &p){
     p.accbeg=0;
     p.accend=0;
     p.velini=0;
@@ -102,7 +102,7 @@ void scurve_construct::zero_period(scurve_period &p){
     p.accinf=0;
 }
 
-void scurve_construct::jog_velocity(scurve_data &s, int enable, double endvel, double endacc, double tarpos){
+void scurve_engine::jog_velocity(scurve_data &s, int enable, double endvel, double endacc, double tarpos){
 
     s.tarpos=tarpos;
     s.modpos=0;         // Keep zero, otherwise it will set tarpos at finish.
@@ -113,14 +113,14 @@ void scurve_construct::jog_velocity(scurve_data &s, int enable, double endvel, d
     if(s.guivel<0 && s.guipos<s.tarpos){
         s.endvel=0;
         s.endacc=0;
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         // std::cout<<"stopcurve change direction."<<std::endl;
         return;
     }
     if(s.guivel>0 && s.guipos>s.tarpos){
         s.endvel=0;
         s.endacc=0;
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         // std::cout<<"stopcurve change direction."<<std::endl;
         return;
     }
@@ -134,14 +134,14 @@ void scurve_construct::jog_velocity(scurve_data &s, int enable, double endvel, d
     }
 
     if(enable){
-        scurve_construct().forward_curve_build(s);
+        scurve_engine().forward_curve_build(s);
         // std::cout<<"forward curve."<<std::endl;
     }
     if(!enable){
         if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
             s.endvel=0;
         }
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         // std::cout<<"stopcurve to ve:"<<s.endvel<<std::endl;
     }
 
@@ -152,7 +152,7 @@ void scurve_construct::jog_velocity(scurve_data &s, int enable, double endvel, d
     }
 }
 
-void scurve_construct::jog_position_master(scurve_data &s, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev){
+void scurve_engine::jog_position_master(scurve_data &s, int enable, double endvel, double endacc, double tarpos, int jog_fwd, int jog_rev){
 
     s.finish=0;
     s.tarpos=tarpos;
@@ -166,7 +166,7 @@ void scurve_construct::jog_position_master(scurve_data &s, int enable, double en
     if(s.vr>s.maxvel){
         s.endvel=s.maxvel;
         s.endacc=0;
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         return;
     }
 
@@ -177,26 +177,26 @@ void scurve_construct::jog_position_master(scurve_data &s, int enable, double en
     if(s.pd.btn_fwd && s.guivel<0){ // Jog stop first before changing direction.
         s.endvel=0;
         s.endacc=0;
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         // std::cout<<"direction change to ve=0."<<std::endl;
         return;
     }
     if(s.pd.btn_rev && s.guivel>0){ // Jog stop first before changing direction.
         s.endvel=0;
         s.endacc=0;
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         // std::cout<<"direction change to ve=0."<<std::endl;
         return;
     }
 
     if(s.pd.btn_fwd && s.guipos>=s.tarpos){
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         s.finish=1;
         // std::cout<<"finished fwd."<<std::endl;
         return;
     }
     if(s.pd.btn_rev && s.guipos<=s.tarpos){
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         s.finish=1;
         // std::cout<<"finished rev."<<std::endl;
         return;
@@ -215,7 +215,7 @@ void scurve_construct::jog_position_master(scurve_data &s, int enable, double en
     }
 }
 
-void scurve_construct::jog_position_rev(scurve_data &s, int enable, double tarpos){
+void scurve_engine::jog_position_rev(scurve_data &s, int enable, double tarpos){
 
     s.tarpos=tarpos;
     s.revers=1;
@@ -236,23 +236,23 @@ void scurve_construct::jog_position_rev(scurve_data &s, int enable, double tarpo
             s.pd.dist_remove_a_cycle=s.pd.overshoot/cycles;
             s.pd.stopinit=1;
         }
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         s.guipos+=s.pd.dist_remove_a_cycle;
         return;
     }
 
     if(enable){
-        scurve_construct().forward_curve_build(s);
+        scurve_engine().forward_curve_build(s);
     }
     if(!enable){
         //if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
             s.endvel=0;
         //}
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
     }
 }
 
-void scurve_construct::jog_position_fwd(scurve_data &s, int enable, double tarpos){
+void scurve_engine::jog_position_fwd(scurve_data &s, int enable, double tarpos){
 
     s.tarpos=tarpos;
     s.revers=0;
@@ -271,23 +271,23 @@ void scurve_construct::jog_position_fwd(scurve_data &s, int enable, double tarpo
             s.pd.dist_remove_a_cycle=s.pd.overshoot/cycles;
             s.pd.stopinit=1;
         }
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
         s.guipos-=s.pd.dist_remove_a_cycle;
         return;
     }
 
     if(enable){
-        scurve_construct().forward_curve_build(s);
+        scurve_engine().forward_curve_build(s);
     }
     if(!enable){
         //if(s.vr<s.endvel){ // If velocity is below the endvel, endvel is set to zero.
             s.endvel=0;
         //}
-        scurve_construct().stop_curve_build(s);
+        scurve_engine().stop_curve_build(s);
     }
 }
 
-void scurve_construct::stop_lenght(scurve_data &s, double &lenght, double &time){
+void scurve_engine::stop_lenght(scurve_data &s, double &lenght, double &time){
     scurve_data data=s;
     stop_curve_build(data);
     lenght=stot_period(data.c0)+stot_period(data.c1)+stot_period(data.c2)+stot_period(data.c3);
@@ -296,7 +296,7 @@ void scurve_construct::stop_lenght(scurve_data &s, double &lenght, double &time)
 
 //! Stop scurve algoritme.
 //! Can handle positive or negative begin acceleration values.
-void scurve_construct::stop_curve_build(scurve_data &s){
+void scurve_engine::stop_curve_build(scurve_data &s){
 
     double jermax=s.jermax;
     double accinf=s.maxacc*2;
@@ -379,7 +379,7 @@ void scurve_construct::stop_curve_build(scurve_data &s){
 
 //! Forward scurve algoritme.
 //! Can handle positive or negative begin acceleration values.
-void scurve_construct::forward_curve_build(scurve_data &s){
+void scurve_engine::forward_curve_build(scurve_data &s){
 
     double jermax=s.jermax;
     double accinf=s.maxacc*2;
@@ -464,7 +464,7 @@ void scurve_construct::forward_curve_build(scurve_data &s){
 
 //! Calculates netto difference between to values.
 //! For example difference -100, 100 would be 200.
-double scurve_construct::diff(double a, double b){
+double scurve_engine::diff(double a, double b){
 
     if(a<=0 && b>=0){
         return fabs(a)+b;
@@ -485,7 +485,7 @@ double scurve_construct::diff(double a, double b){
 //! Calculate when the stop curve is valid.
 //! Try to end at given endpoint.
 //! Returns 1, when finished.
-void scurve_construct::jog_update(scurve_data &s){
+void scurve_engine::jog_update(scurve_data &s){
 
     s.curtim+=s.intval;
     s.oldpos=s.sr;
@@ -557,7 +557,7 @@ void scurve_construct::jog_update(scurve_data &s){
     }
 }
 
-void scurve_construct::jog_results(scurve_data s, double &velocity, double &acceleration, double &position, int &finished){
+void scurve_engine::jog_results(scurve_data s, double &velocity, double &acceleration, double &position, int &finished){
     velocity=s.guivel;
     acceleration=s.guiacc;
     position=s.guipos;
@@ -565,7 +565,7 @@ void scurve_construct::jog_results(scurve_data s, double &velocity, double &acce
 }
 
 //! Play convex period t3.
-void scurve_construct::t3_play(double attime,
+void scurve_engine::t3_play(double attime,
                                double accinf,
                                double jermax,
                                double timbeg,
@@ -596,7 +596,7 @@ void scurve_construct::t3_play(double attime,
 }
 
 //! Buld convex period t3.
-void scurve_construct::t3_build(double jermax,
+void scurve_engine::t3_build(double jermax,
                                 double accinf,
                                 double curvel,
                                 double curacc,
@@ -634,7 +634,7 @@ void scurve_construct::t3_build(double jermax,
 }
 
 //! Play concave period t1.
-void scurve_construct::t1_play(double at_time,
+void scurve_engine::t1_play(double at_time,
                                double accinf,
                                double jermax,
                                double timbeg,
@@ -663,7 +663,7 @@ void scurve_construct::t1_play(double at_time,
 }
 
 //! Build concave period t1.
-void scurve_construct::t1_build(double jermax,
+void scurve_engine::t1_build(double jermax,
                                 double curvel,
                                 double curacc,
                                 double endacc,
@@ -698,7 +698,7 @@ void scurve_construct::t1_build(double jermax,
 }
 
 //! Play linear acceleration period t2.
-void scurve_construct::t2_play(double attime,
+void scurve_engine::t2_play(double attime,
                                double accinf,
                                double timsta,
                                double timend,
@@ -724,7 +724,7 @@ void scurve_construct::t2_play(double attime,
 }
 
 //! Build linear acceleration period t2.
-void scurve_construct::t2_build(double curvel,
+void scurve_engine::t2_build(double curvel,
                                 double endvel,
                                 double accinf,
                                 scurve_period &c2){
@@ -753,7 +753,7 @@ void scurve_construct::t2_build(double curvel,
 }
 
 //! Play steady period t4.
-void scurve_construct::t4_play(double attime,
+void scurve_engine::t4_play(double attime,
                                double timsta,
                                double velbeg,
                                double &velend,
@@ -774,7 +774,7 @@ void scurve_construct::t4_play(double attime,
 }
 
 //! Build steady period t4.
-void scurve_construct::t4_build(double curvel, scurve_period &c4){
+void scurve_engine::t4_build(double curvel, scurve_period &c4){
 
     c4.velini=curvel;
     c4.velbeg=curvel;
@@ -788,7 +788,7 @@ void scurve_construct::t4_build(double curvel, scurve_period &c4){
 }
 
 //! Build a t1,t2,t3 curve using zero acceleration begin & end.
-void scurve_construct::t1_t2_t3_build(double jermax,
+void scurve_engine::t1_t2_t3_build(double jermax,
                                       double accinf,
                                       double curvel,
                                       double endvel,
@@ -854,7 +854,7 @@ void scurve_construct::t1_t2_t3_build(double jermax,
 
 // "dv"  Delta velocity, dv=vo-ve, derived from: t1=2*(ve-vo)/as;
 // A t1,t3 curve using as is excact dv. Then 0.5*dv is a t1 or a t3.
-double scurve_construct::delta_vel(double jm, double as){
+double scurve_engine::delta_vel(double jm, double as){
     double dvt=2*as/jm;
     double dv=fabs((dvt*as)/2);
     return dv;
@@ -863,7 +863,7 @@ double scurve_construct::delta_vel(double jm, double as){
 // When vo to ve < dv, use custom as.
 // This results in t1 with ace, t3 with acs.
 // Valid for curvel with zero acceleration, endvel with zero acceleration.
-void scurve_construct::t1_t3_custom_as(double jm, double curvel, double endvel, double &as){
+void scurve_engine::t1_t3_custom_as(double jm, double curvel, double endvel, double &as){
     double vo=curvel;
     double ve=endvel;
     double vh=(vo+ve)/2;

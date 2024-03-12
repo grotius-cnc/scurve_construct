@@ -3,7 +3,7 @@
 #include <QDebug>
 #include "iostream"
 
-#include "../scurve_construct/scurve_construct.h"
+#include "../scurve_engine/scurve_engine.h"
 scurve_data s;
 double jermax=5;
 double maxacc=5;

@@ -13,6 +13,12 @@ velocity control
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/rtNosKwFN_0/0.jpg)](https://www.youtube.com/watch?v=rtNosKwFN_0)
 
+Auto mode using low jerk.
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/l-jv2d2I6jA/0.jpg)](https://www.youtube.com/watch?v=l-jv2d2I6jA)
+
+Auto mode using high jerk.
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/0nQPobtvp1o/0.jpg)](https://www.youtube.com/watch?v=0nQPobtvp1o)
+
 
 ### Overview
 
@@ -30,14 +36,14 @@ to create a functional library that can be used in realtime applications.
 - Position control.
 - End velocity.
 - End acceleration.
+- Trajectory waypoints.
 - Support for both forward and reverse jogging in velocity or position mode.
 - Linear acceleration stage between concave & convex curve depending on jerk value.
 - Gui project to preview curve outputs in a qt-realtime-plot.
 
-
 ### Language
 
-C & C++.
+C++ and C compatible by extern "C".
 
 ### Example for c
 

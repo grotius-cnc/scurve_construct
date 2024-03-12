@@ -17,10 +17,10 @@ double acc(scurve_data d);
 double pos(scurve_data d);
 
 //! Class to construct a forward or stop scurve using different functions.
-class scurve_construct
+class scurve_engine
 {
 public:
-    scurve_construct();
+    scurve_engine();
 
     //! Set values for initialisation.
     scurve_data  set_init_values(double jerk_max,
@@ -135,11 +135,12 @@ private:
 
     // The netto difference between two values.
     double diff(double a, double b);
+
 };
 
 //! Here it tells if this code is used in c, convert the class to a struct. This is handy!
 #else
-typedef struct scurve_construct scurve_construct;
+typedef struct scurve_engine scurve_engine;
 #endif //! cplusplus
 
 #endif // SCURVE_CONSTRUCT_H

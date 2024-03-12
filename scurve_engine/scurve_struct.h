@@ -27,8 +27,6 @@ struct scurve_data {
     double intval;                // Cycletime.
     double jermax;                // Jerk max.
     double curtim;                // Time current.
-    // double curvel;                // Velocity current.
-    // double curacc;                // Accelertaion current.
     double endacc;                // Acceleration end.
     double endvel;                // Velocity end.
     double maxvel;                // Velocity max.
